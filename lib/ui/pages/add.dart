@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 //TODO allow user to pick image and display the preview in UI
 //TODO save new data to firestore (upload image to storage)
@@ -8,12 +11,16 @@ class AddPage extends StatefulWidget {
 }
 
 class _AddPageState extends State<AddPage> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
   String title;
   String description;
+  File _image;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title: Text("Add item"),
         backgroundColor: Colors.blueAccent,
@@ -36,9 +43,26 @@ class _AddPageState extends State<AddPage> {
           SizedBox(
             height: 20,
           ),
-          _buildSaveButton(context)
+          _buildSaveButton(context),
+          SizedBox(
+            height: 20,
+          ),
+          _imagePreview(),
+          Container(
+            height: 80,
+            width: double.infinity,
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _imagePreview() {
+    return Container(
+      height: 300,
+      margin: EdgeInsets.only(bottom: 40),
+      width: 300,
+      child: _image != null ? Image.file(_image) : Container(),
     );
   }
 
@@ -79,7 +103,49 @@ class _AddPageState extends State<AddPage> {
         icon: Icon(Icons.camera),
         label: Text("Add Image"),
         color: Colors.blue,
-        onPressed: () {},
+        onPressed: () {
+          return scaffoldKey.currentState
+              .showBottomSheet((context) => Container(
+                    color: Colors.red,
+                    height: 100,
+                    padding: EdgeInsets.symmetric(horizontal: 100),
+                    child: Row(
+                      children: <Widget>[
+                        IconButton(
+                          icon: Icon(
+                            Icons.camera_alt,
+                            size: 50,
+                            color: Colors.white,
+                          ),
+                          onPressed: () async {
+                            File image = await ImagePicker.pickImage(
+                                source: ImageSource.camera);
+                            setState(() {
+                              _image = image;
+                            });
+                            Navigator.pop(context);
+                          },
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(
+                            Icons.image,
+                            size: 50,
+                            color: Colors.white,
+                          ),
+                          onPressed: () async {
+                            File image = await ImagePicker.pickImage(
+                                source: ImageSource.gallery);
+                            setState(() {
+                              _image = image;
+                            });
+                            Navigator.pop(context);
+                          },
+                        )
+                      ],
+                    ),
+                  ));
+        },
       ),
     );
   }
@@ -92,7 +158,10 @@ class _AddPageState extends State<AddPage> {
         icon: Icon(Icons.save),
         label: Text("Save"),
         color: Colors.blue,
-        onPressed: () async {},
+        onPressed: () async {
+          print(_image);
+          Navigator.pop(context);
+        },
       ),
     );
   }
